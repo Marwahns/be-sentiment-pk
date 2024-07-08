@@ -21,7 +21,9 @@ async def root():
     return {"message": "Hello we are from Group 2"}
 
 @app.post("/api/sentiment", description="This is sentiment analysis route")
-async def post(text: str):
+async def post(feedback: Feedback):
+    text = feedback.text
+
     # Load tokenizer's configuration
     with open('./model/tokenizer_config.pkl', 'rb') as f:
         tokenizer_config = pickle.load(f)
