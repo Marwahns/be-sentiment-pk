@@ -54,9 +54,9 @@ async def post(feedback: Feedback):
     # Convert predictions to a list for JSON serialization
     predictions_list = predictions.tolist()
     result_predictions = {
-        "score_negative": predictions_list[0][0],
-        "score_neutral": predictions_list[0][1],
-        "score_positive": predictions_list[0][2]
+        "negative": predictions_list[0][0],
+        "neutral": predictions_list[0][1],
+        "positive": predictions_list[0][2]
     }
 
     return {
