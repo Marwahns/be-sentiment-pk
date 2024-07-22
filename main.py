@@ -1,4 +1,7 @@
 import pickle
+import numpy as np
+import re
+import pandas as pd
 
 from fastapi import FastAPI
 import uvicorn
@@ -9,18 +12,13 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-import re
-import pandas as pd
+app = FastAPI()
 
-from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
-from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory, StopWordRemover, ArrayDictionary
-from mpstemmer import MPStemmer
+class Feedback(BaseModel):
+    email: Union[str, None] = None
+    text: str
 
-factory = StemmerFactory()
-stemmer = factory.create_stemmer()
-lemma = MPStemmer()
-
-key_norm = pd.read_csv('../corpus/colloquial-indonesian-lexicon.csv')
+key_norm = pd.read_csv('../be-sentiment-pk/corpus/colloquial-indonesian-lexicon.csv')
 
 def casefolding(string):
     string = string.lower()
@@ -58,36 +56,12 @@ def text_normalize(string):
     normalized_text = ' '.join([key_norm[key_norm['slang'] == word]['formal'].values[0] if (key_norm['slang'] == word).any() else word for word in words])
     return normalized_text.lower()
 
-# Stopword remover setup
-stop_words = StopWordRemoverFactory().get_stop_words()
-new_array = ArrayDictionary(stop_words)
-stop_words_remover = StopWordRemover(new_array)
-
-def remove_stopwords(text):
-    return stop_words_remover.remove(text)
-
-def stemming(text):
-    words = text.split()
-    stemmed_words = [stemmer.stem(word) for word in words]
-    return ' '.join(stemmed_words)
-
-def lemmatization(text):
-    return lemma.stem(text)
-
 # Function to preprocess text
-def preprocess_text(feedback):
-    text = casefolding(feedback)
+def preprocess_text(text):
+    text = re.sub(r'\bsampah\b', 'sampahnya', text)
+    text = casefolding(text)
     text = text_normalize(text)
-    text = remove_stopwords(text)
-    text = stemming(text)
-    text = lemmatization(text)
     return text
-
-app = FastAPI()
-
-class Feedback(BaseModel):
-    email: Union[str, None] = None
-    text: str
 
 @app.get("/", description="This is our first route.")
 async def root():
@@ -100,14 +74,14 @@ async def post(feedback: Feedback):
     text_processed = preprocess_text(text)
 
     # Load tokenizer's configuration
-    with open('./models/asli_fix/tokenizer_config_w2v_bilstm_fix.pkl', 'rb') as f:
+    with open('./models/bilstm_fix/tokenizer_config_bilstm_fix3.pkl', 'rb') as f:
         tokenizer_config = pickle.load(f)
 
     # Recreate tokenizer
     tokenizer = Tokenizer(**tokenizer_config)
 
     # Load tokenizer's word index
-    with open('./models/asli_fix/tokenizer_word_index_w2v_bilstm_fix.pkl', 'rb') as f:
+    with open('./models/bilstm_fix/tokenizer_word_index_bilstm_fix3.pkl', 'rb') as f:
         tokenizer.word_index = pickle.load(f)
 
     # new data to predict
@@ -121,7 +95,7 @@ async def post(feedback: Feedback):
     padded_sequences = pad_sequences(sequences, maxlen=max_length)
 
     # Load the saved model
-    model = load_model('./models/asli_fix/model_w2v_bilstm_fix.keras')
+    model = load_model('./models/bilstm_fix/best_model3.keras')
 
     # Perform prediction
     predictions = model.predict(padded_sequences)
@@ -141,5 +115,4 @@ async def post(feedback: Feedback):
     }
 
 if __name__ == "__main__":
-  download_nltk_data()
   uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
