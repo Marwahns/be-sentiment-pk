@@ -1,2 +1,13 @@
 /__pycache__/
 /env/
+/corpus
+/data
+/datasets
+/utils
+/models/bilstm/
+/models/lstm/
+/models/bilstm_fix/
+/models/word2vec_bilstm/
+model_w2v_bilstm_fix.keras
+*.ipynb
+*.model
