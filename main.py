@@ -10,23 +10,92 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-from utils.preprocessor import casefolding, text_normalize, remove_stopwords, stemming, lemmatization
+import re
+import pandas as pd
+import nltk
 
-app = FastAPI()
+from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory, StopWordRemover, ArrayDictionary
+from mpstemmer import MPStemmer
+from nltk.corpus import stopwords
 
-class Feedback(BaseModel):
-    email: Union[str, None] = None
-    text: str
+nltk.download('punkt')
+nltk.download('stopwords')
+
+stopwords_ind = stopwords.words('indonesian')
+
+factory = StemmerFactory()
+stemmer = factory.create_stemmer()
+lemma = MPStemmer()
+
+key_norm = pd.read_csv('../corpus/colloquial-indonesian-lexicon.csv')
+
+def casefolding(string):
+    string = string.lower()
+    string = re.sub(r'https?://\S+|www\.\S+', '', string) # remove URLs
+    string = re.sub(r"[-()\"#/@;:<>{}`+=~|.!?,]", '', string) # remove punctuations and special characters
+    # string = re.sub(r'[^\w\s]','', string) # remove tanda baca
+    string = re.sub(r"[^A-Za-z0-9(),!?\'\-`]", " ", string)
+    string = re.sub(r"\'s", " \'s", string)
+    string = re.sub(r"\'ve", " \'ve", string)
+    string = re.sub(r"n\'t", " n\'t", string)
+    # Menghapus enter
+    string = re.sub(r"\n", "", string)
+
+    # Membersihkan elemen yang tidak perlu, seperti menghapus spasi 2
+    string = re.sub(r"\'re", " \'re", string)
+
+    # Mengecek digit atau bukan
+    string = re.sub(r"\'d", " \'d", string)
+
+    # Mengecek long atau bukan
+    string = re.sub(r"\'ll", " \'ll", string)
+    string = re.sub(r",", " , ", string)
+    string = re.sub(r"!", " ! ", string)
+    string = re.sub(r"\(", " \( ", string)
+    string = re.sub(r"\)", " \) ", string)
+    string = re.sub(r"\?", " \? ", string)
+    string = re.sub(r"\s{2,}", " ", string)
+    string = string.strip()
+    # Menghilangkan imbuhan
+    
+    return string
+
+def text_normalize(string):
+    words = string.split()
+    normalized_text = ' '.join([key_norm[key_norm['slang'] == word]['formal'].values[0] if (key_norm['slang'] == word).any() else word for word in words])
+    return normalized_text.lower()
+
+# Stopword remover setup
+stop_words = StopWordRemoverFactory().get_stop_words()
+new_array = ArrayDictionary(stop_words)
+stop_words_remover = StopWordRemover(new_array)
+
+def remove_stopwords(text):
+    return stop_words_remover.remove(text)
+
+def stemming(text):
+    words = text.split()
+    stemmed_words = [stemmer.stem(word) for word in words]
+    return ' '.join(stemmed_words)
+
+def lemmatization(text):
+    return lemma.stem(text)
 
 # Function to preprocess text
 def preprocess_text(text):
-    # text = re.sub(r'\bsampah\b', 'sampahnya', text)
     text = casefolding(text)
     text = text_normalize(text)
     text = remove_stopwords(text)
     text = stemming(text)
     text = lemmatization(text)
     return text
+
+app = FastAPI()
+
+class Feedback(BaseModel):
+    email: Union[str, None] = None
+    text: str
 
 @app.get("/", description="This is our first route.")
 async def root():
