@@ -1,5 +1,4 @@
 import pickle
-import numpy as np
 
 from fastapi import FastAPI
 import uvicorn
@@ -12,17 +11,10 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 import re
 import pandas as pd
-import nltk
 
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
 from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory, StopWordRemover, ArrayDictionary
 from mpstemmer import MPStemmer
-from nltk.corpus import stopwords
-
-nltk.download('punkt')
-nltk.download('stopwords')
-
-stopwords_ind = stopwords.words('indonesian')
 
 factory = StemmerFactory()
 stemmer = factory.create_stemmer()
@@ -83,8 +75,8 @@ def lemmatization(text):
     return lemma.stem(text)
 
 # Function to preprocess text
-def preprocess_text(text):
-    text = casefolding(text)
+def preprocess_text(feedback):
+    text = casefolding(feedback)
     text = text_normalize(text)
     text = remove_stopwords(text)
     text = stemming(text)
@@ -149,4 +141,5 @@ async def post(feedback: Feedback):
     }
 
 if __name__ == "__main__":
+  download_nltk_data()
   uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
