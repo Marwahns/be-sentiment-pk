@@ -39,14 +39,14 @@ async def post(feedback: Feedback):
     text_processed = preprocess_text(text)
 
     # Load tokenizer's configuration
-    with open('../be-sentiment-pk/models/asli_fix/tokenizer_config_w2v_bilstm_fix.pkl', 'rb') as f:
+    with open('./models/asli_fix/tokenizer_config_w2v_bilstm_fix.pkl', 'rb') as f:
         tokenizer_config = pickle.load(f)
 
     # Recreate tokenizer
     tokenizer = Tokenizer(**tokenizer_config)
 
     # Load tokenizer's word index
-    with open('../be-sentiment-pk/models/asli_fix/tokenizer_word_index_w2v_bilstm_fix.pkl', 'rb') as f:
+    with open('./models/asli_fix/tokenizer_word_index_w2v_bilstm_fix.pkl', 'rb') as f:
         tokenizer.word_index = pickle.load(f)
 
     # new data to predict
@@ -60,7 +60,7 @@ async def post(feedback: Feedback):
     padded_sequences = pad_sequences(sequences, maxlen=max_length)
 
     # Load the saved model
-    model = load_model('../be-sentiment-pk/models/asli_fix/model_w2v_bilstm_fix.keras')
+    model = load_model('./models/asli_fix/model_w2v_bilstm_fix.keras')
 
     # Perform prediction
     predictions = model.predict(padded_sequences)
@@ -79,5 +79,5 @@ async def post(feedback: Feedback):
         "predictions": result_predictions
     }
 
-# if __name__ == "__main__":
-#   uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+if __name__ == "__main__":
+  uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
