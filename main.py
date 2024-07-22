@@ -1,6 +1,6 @@
 import pickle
-import numpy as np
 import re
+import numpy as np
 import pandas as pd
 
 from fastapi import FastAPI
@@ -59,6 +59,7 @@ def text_normalize(string):
 # Function to preprocess text
 def preprocess_text(text):
     text = re.sub(r'\bsampah\b', 'sampahnya', text)
+    text = re.sub(r'\blayak\b', 'dapat', text)
     text = casefolding(text)
     text = text_normalize(text)
     return text
