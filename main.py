@@ -18,7 +18,7 @@ class Feedback(BaseModel):
     email: Union[str, None] = None
     text: str
 
-key_norm = pd.read_csv('../be-sentiment-pk/corpus/colloquial-indonesian-lexicon.csv')
+key_norm = pd.read_csv('./corpus/colloquial-indonesian-lexicon.csv')
 
 def casefolding(string):
     string = string.lower()
@@ -75,14 +75,14 @@ async def post(feedback: Feedback):
     text_processed = preprocess_text(text)
 
     # Load tokenizer's configuration
-    with open('./models/bilstm_fix/tokenizer_config_bilstm_fix3.pkl', 'rb') as f:
+    with open('./models/tokenizer_config_bilstm_fix3.pkl', 'rb') as f:
         tokenizer_config = pickle.load(f)
 
     # Recreate tokenizer
     tokenizer = Tokenizer(**tokenizer_config)
 
     # Load tokenizer's word index
-    with open('./models/bilstm_fix/tokenizer_word_index_bilstm_fix3.pkl', 'rb') as f:
+    with open('./models/tokenizer_word_index_bilstm_fix3.pkl', 'rb') as f:
         tokenizer.word_index = pickle.load(f)
 
     # new data to predict
@@ -96,7 +96,7 @@ async def post(feedback: Feedback):
     padded_sequences = pad_sequences(sequences, maxlen=max_length)
 
     # Load the saved model
-    model = load_model('./models/bilstm_fix/best_model3.keras')
+    model = load_model('./models/best_model3.keras')
 
     # Perform prediction
     predictions = model.predict(padded_sequences)
