@@ -23,21 +23,13 @@ def casefolding(string):
     string = string.lower()
     string = re.sub(r'https?://\S+|www\.\S+', '', string) # remove URLs
     string = re.sub(r"[-()\"#/@;:<>{}`+=~|.!?,]", '', string) # remove punctuations and special characters
-    # string = re.sub(r'[^\w\s]','', string) # remove tanda baca
     string = re.sub(r"[^A-Za-z0-9(),!?\'\-`]", " ", string)
     string = re.sub(r"\'s", " \'s", string)
     string = re.sub(r"\'ve", " \'ve", string)
     string = re.sub(r"n\'t", " n\'t", string)
-    # Menghapus enter
-    string = re.sub(r"\n", "", string)
-
-    # Membersihkan elemen yang tidak perlu, seperti menghapus spasi 2
+    string = re.sub(r"\n", "", string) # Remove new lines
     string = re.sub(r"\'re", " \'re", string)
-
-    # Mengecek digit atau bukan
     string = re.sub(r"\'d", " \'d", string)
-
-    # Mengecek long atau bukan
     string = re.sub(r"\'ll", " \'ll", string)
     string = re.sub(r",", " , ", string)
     string = re.sub(r"!", " ! ", string)
@@ -46,8 +38,6 @@ def casefolding(string):
     string = re.sub(r"\?", " \? ", string)
     string = re.sub(r"\s{2,}", " ", string)
     string = string.strip()
-    # Menghilangkan imbuhan
-    
     return string
 
 def text_normalize(string):
@@ -72,7 +62,7 @@ with open('./fix/tokenizer_word_index_final.pkl', 'rb') as f:
     tokenizer.word_index = pickle.load(f)
 
 # Load the saved model
-model = load_model('/fix/model_final.keras')
+model = load_model('./fix/model_final.keras')
 
 @app.get("/", description="This is our first route.")
 async def root():
