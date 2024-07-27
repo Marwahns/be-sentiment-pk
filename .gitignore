@@ -10,3 +10,10 @@
 model_w2v_bilstm_fix.keras
 *.ipynb
 *.model
+*.png
+history_bilstm_fix3.pkl
+model_bilstm_fix3.h5
+model_bilstm_fix3.keras
+model_bilstm_fix3(1).keras
+model_fix.keras
+model_weights_bilstm_fix3.weights.h5

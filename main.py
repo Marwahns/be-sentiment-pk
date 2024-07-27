@@ -1,6 +1,5 @@
 import pickle
 import re
-import numpy as np
 import pandas as pd
 
 from fastapi import FastAPI
@@ -64,26 +63,26 @@ def preprocess_text(text):
     text = text_normalize(text)
     return text
 
+# Load and cache the model and tokenizer at startup
+with open('./fix/tokenizer_config_final.pkl', 'rb') as f:
+    tokenizer_config = pickle.load(f)
+
+tokenizer = Tokenizer(**tokenizer_config)
+with open('./fix/tokenizer_word_index_final.pkl', 'rb') as f:
+    tokenizer.word_index = pickle.load(f)
+
+# Load the saved model
+model = load_model('/fix/model_final.keras')
+
 @app.get("/", description="This is our first route.")
 async def root():
     return {"message": "Hello we are from Group 2"}
 
+
 @app.post("/api/sentiment", description="This is sentiment analysis route")
 async def post(feedback: Feedback):
     text = feedback.text
-
     text_processed = preprocess_text(text)
-
-    # Load tokenizer's configuration
-    with open('./models/tokenizer_config_bilstm_fix3.pkl', 'rb') as f:
-        tokenizer_config = pickle.load(f)
-
-    # Recreate tokenizer
-    tokenizer = Tokenizer(**tokenizer_config)
-
-    # Load tokenizer's word index
-    with open('./models/tokenizer_word_index_bilstm_fix3.pkl', 'rb') as f:
-        tokenizer.word_index = pickle.load(f)
 
     # new data to predict
     new_texts = [text_processed]
@@ -94,9 +93,6 @@ async def post(feedback: Feedback):
     # Padding sequences
     max_length = 100  # model's max_length
     padded_sequences = pad_sequences(sequences, maxlen=max_length)
-
-    # Load the saved model
-    model = load_model('./models/best_model3.keras')
 
     # Perform prediction
     predictions = model.predict(padded_sequences)
