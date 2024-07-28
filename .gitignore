@@ -8,7 +8,14 @@
 /models/bilstm_fix/
 /models/word2vec_bilstm/
 model_w2v_bilstm_fix.keras
-*.ipynb
+bilstm_.ipynb
+bismillah.ipynb
+bismillah2.ipynb
+check.ipynb
+load.ipynb
+manipulation_data.ipynb
+preprocessingv2.ipynb
+sentiment_analysis.ipynb
 *.model
 *.png
 history_bilstm_fix3.pkl
